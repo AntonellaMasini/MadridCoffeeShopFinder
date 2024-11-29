@@ -15,6 +15,7 @@ class CoffeeShops(Base):
     has_ac = Column(Boolean)
     has_outlets = Column(Boolean)
     dog_friendly = Column(Boolean)
+    user_id = Column(Integer, ForeignKey('users.id'))
     #MAYBE ADD opening times
 
 
