@@ -1,18 +1,33 @@
 #Handles all coffee shop-related endpoints
 from fastapi import APIRouter, HTTPException, status, Response
-from typing import List
+from fastapi.param_functions import Depends
+#from CoffeeShopApp.dependencies import db_dependency
+from typing import Annotated, List
 from sqlalchemy.sql.sqltypes import String
 from sqlalchemy.orm import Session
+from datetime import datetime
+from CoffeeShopApp.models import CoffeeShops
+from CoffeeShopApp.schemas import CoffeeShopRequest
+from CoffeeShopApp.database import SessionLocal
+from .users import get_current_user
 
 
-from CoffeeShopApp.models import CoffeeShopRequest, CoffeeShops
-from CoffeeShopApp.main import db_dependency, user_dependency
+user_dependency = Annotated[dict, Depends(get_current_user)]
 
-router = APIRouter(
-    prefix='/coffee-shops',
-    #tags=['coffee_shops']
-)
+# function to open a connection to database (which is a server that stores data). Kinda like a phone call.
+# close it after it is returned to client. Why? To avoid blocks, deadlocks, occupying all the connections, memory.
+def get_db():
+    db= SessionLocal() #opens connection, SessionLocal is a factory function provided by SQLAlchemy that creates session objects. A session is a temporary workspace
+    try:
+        yield db
+    finally:
+        db.close()
 
+db_dependency = Annotated[Session, Depends(get_db)] #dependancy injection to grab and run first db using FastApi, inside FastApi's framework. Avoids repeating  "db: Session = Depends(get_db)" in every fastapi endpoint func parameter
+
+
+
+router = APIRouter()
 
 #OOP structure
 class CoffeeShop():
@@ -35,16 +50,19 @@ class CoffeeShop():
 
     def create_coffee_shop(self):
         coffee = CoffeeShops(**CoffeeShopRequest.dict())
-
     #     #todo_request.dict()   --> converts todo_request pydantic object (JSON format) into python dictionary
     #     #**todo_request.dict() --> unpacks dictionary into keyword arguments for the Todos model, mapping fields (title) to corresponding columns in the Todos SQLAlchemy model.
     #     #db.add(todo_model)    --> adds todo_model object (instance of Todo class), to table (still not commited tho, local)
     #     #db.commit()           --> commits changes to database
 
-@router.get("/coffee-shops/", response_model=List[CoffeeShop])
-def list_coffee_shops():
-    # Logic to list all coffee shops
-    pass
+
+
+#API ENDPOINTS -----------------------------------------------------------------------------------------------------------------------
+
+@router.get("/coffee-shops/")
+def list_coffee_shops(db:db_dependency):
+    #SELECT * FROM coffee_shops_table
+    return db.query(CoffeeShops).all() #returns a list of objects
 
 # Parameter1: starts database session, passed into function as db variable
 # Parameter2: coffee_shop_request represents the JSON input data sent by the client.
@@ -53,10 +71,11 @@ def list_coffee_shops():
 def create_coffee_shop(user:user_dependency, db: db_dependency, coffee_shop_request: CoffeeShopRequest):
     # create instance of class CoffeeShops
     # user_dependency returns a dict: {"username": username, "id": user_id} . We can access this with normal dict call but it is always better to use get method
-    coffee_shop_model = CoffeeShops(**coffee_shop_request.dict(), user_id= user.get(id))     
-    db.add(coffee_shop_model)       
-    db.commit(coffee_shop_model)    
-
+    shop = CoffeeShops(**coffee_shop_request.dict(), user_id= user.get('id'))     
+    db.add(shop)       
+    db.commit()  
+    db.refresh(shop)  
+    return shop
 
 
 #coffee_shop_request.dict()   --> converts coffee_shop_request pydantic object (JSON format) into python dictionary

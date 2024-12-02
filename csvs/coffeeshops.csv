@@ -1,0 +1,7 @@
+name,address,wifi_quality,has_ac,laptop_friendly_seats,dog_friendly,noise_level,outlet_availability,user_id
+Federal Cafe,"Pl. de las Comendadoras, 9, Centro, 28015 Madrid, Spain",high,TRUE,medium,TRUE,medium,medium,1
+Hanso Cafe,"C. del Pez, 20, Centro, 28004 Madrid, Spain",high,TRUE,high,TRUE,medium,low,1
+Toma Cafe,"C. de la Palma, 49, Centro, 28004 Madrid, Spain",high,FALSE,low,TRUE,low,medium,1
+La Bicicleta,"Pl. de San Ildefonso, 9, Centro, 28004 Madrid, Spain",medium,TRUE,high,TRUE,medium,high,1
+Cafe Belen,"C. de Belén, 5, Centro, 28004 Madrid, Spain",high,FALSE,low,TRUE,low,low,1
+Lola Vintage,"C. del Espíritu Santo, 9, Centro, 28004 Madrid, Spain",low,FALSE,medium,FALSE,medium,medium,1

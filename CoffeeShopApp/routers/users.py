@@ -9,9 +9,18 @@ from datetime import timedelta, datetime, timezone
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from typing import Annotated
-from CoffeeShopApp.main import db_dependency
 from jose import jwt, JWTError
+from CoffeeShopApp.database import SessionLocal
 
+
+
+def get_db():
+    db= SessionLocal() 
+    try:
+        yield db
+    finally:
+        db.close()
+db_dependency = Annotated[Session, Depends(get_db)] 
 
 router = APIRouter(
     prefix='/auth',
@@ -25,9 +34,7 @@ ALGORITHM = "HS256"
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto") #CryptContext is a class passed by passlib library. Handles hashing and verifying passwords
                                                                      #bcrypt is the algorythm (scheme) chosen for password hashing
 
-oauth2_bearer =OAuth2PasswordBearer(tokenUrl='/auth/token')  #when used as a dependency, will let FastAPI extract tokens from requests .
-
-
+oauth2_bearer =OAuth2PasswordBearer(tokenUrl='/coffees-madrid/auth/token')  #when used as a dependency, will let FastAPI extract tokens from requests .
 
 
 def authenticate_user(username: str, password:str, db):
@@ -42,6 +49,7 @@ def authenticate_user(username: str, password:str, db):
     else:
         return user
 
+
 #get encoded token (JWT)
 def create_access_token(username:str, user_id:int, expires_delta:timedelta):
     expires= datetime.now(timezone.utc)+expires_delta
@@ -53,13 +61,15 @@ def create_access_token(username:str, user_id:int, expires_delta:timedelta):
 def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
     try:
         payload=jwt.decode(token, SECRET_KEY) #get decoded payload as a readable string
+        #print(f"Decoded Payload: {payload}")  
         username: str = payload.get("sub") #include type hint is good practice for API development
         user_id: int = payload.get("id")
         if username is None or user_id is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, 
                                 detail= "Invalid credentials. User not found or authentication failed")
+        #print(user_id)
         return {"username": username, "id": user_id}   
-    
+
     #catch any issue that occurs when decoding the JWT.
     except JWTError:                
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, 
@@ -80,8 +90,8 @@ def create_user(db:db_dependency, user: CreateUserRequest):
         date_created=datetime.now().isoformat()
         )
     db.add(new_user)
-    db.commit
-    db.refresh
+    db.commit()
+    db.refresh(new_user)
     return new_user
 
 
@@ -97,10 +107,12 @@ def login_for_access_token(db:db_dependency, form_data: Annotated[OAuth2Password
         return {"access_token": token , "token_type": "bearer"}    #successfully return token 
 
 
-#return user_id info
-@router.get("/{user_id}")
-def get_user(user_id: int):
-   return {"user_id": user_id}
+#return user info
+@router.get("/{user_name}")
+def get_user(db: db_dependency, username: str):
+    #SELECT * FROM Users WHERE user_id = user_id
+    user = db.query(Users).filter(Users.username==username).first()
+    return user
 
 
 
