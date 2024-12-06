@@ -1,0 +1,12 @@
+
+[tool.isort]
+skip = ["myenv"]
+
+
+[tool.black]
+#Exclude files or directories (regular expressions)
+exclude = "/myenv/"
+
+[tool.flake8]
+max-line-length = 200
+exclude = "myenv/**"

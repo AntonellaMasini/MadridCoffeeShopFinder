@@ -1,6 +1,10 @@
 #contains all the libraries that we need for our project to run
 
 fastapi==0.115.4
+isort
+black
+flake8
+flake8-pyproject
 SQLAlchemy==2.0.36
 pytest==8.3.3
 pydantic==2.9.2
