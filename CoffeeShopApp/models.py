@@ -1,8 +1,7 @@
 # ORM models (my Python classes that map to database tables)
-from enum import Enum as PyEnum
-
 from sqlalchemy import Boolean, Column, Enum, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql.schema import CheckConstraint
 
 from CoffeeShopApp.database import Base
 
@@ -10,24 +9,38 @@ from CoffeeShopApp.database import Base
 # each class/model inherits Base class, allowing SQLAlchemy to understand that the class represents a db table.
 
 
-class LevelsEnum(PyEnum):
-    low = "low"
-    medium = "medium"
-    high = "high"
+# class LevelsEnum(IntEnum):
+#     low = 1
+#     medium = 2
+#     high = 3
+
+# class QuantsEnum(IntEnum):
+#     limited = 1
+#     moderate = 2
+#     plenty = 3
 
 
 class CoffeeShops(Base):
     __tablename__ = "coffee_shops"
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False, unique=True)
+    name = Column(String, nullable=False)
+    normalized_name = Column(String, nullable=False, unique=True)
     address = Column(String, nullable=False)
-    wifi_quality = Column(Enum(LevelsEnum), nullable=False)
+    wifi_quality = Column(Integer, nullable=False)
     has_ac = Column(Boolean, nullable=False)
-    laptop_friendly_seats = Column(Enum(LevelsEnum), nullable=False)
+    laptop_friendly_seats = Column(Integer, nullable=False)
     dog_friendly = Column(Boolean, nullable=False)
     noise_level = Column(String, nullable=False)
-    outlet_availability = Column(Enum(LevelsEnum), nullable=False)
+    outlet_availability = Column(Integer, nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"))
+
+    # Add a Check Constraint to ensure values are 1, 2, or 3
+    __table_args__ = (
+        CheckConstraint("wifi_quality IN (1, 2, 3)", name="wifi_quality_check"),
+        CheckConstraint("laptop_friendly_seats IN (1, 2, 3)", name="laptop_seats_check"),
+        CheckConstraint("noise_level IN (1, 2, 3)", name="noise_level_check"),
+        CheckConstraint("outlet_availability IN (1, 2, 3)", name="outlet_availability_check"),
+    )
 
     # Define the relationships with cascade delete:
     # 1 parameter: target model class,    #2 parameter: cascading behavior

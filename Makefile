@@ -10,7 +10,7 @@ RELOAD = --reload        # Use --reload for development to enable hot reloading
 
 # Targets
 run:
-	uvicorn $(APP_NAME) --host $(HOST) --port $(PORT) $(RELOAD)
+	uvicorn $(APP_NAME) --host $(HOST) --port $(PORT) $(RELOAD) --log-level debug
 
 # Install Dependencies
 install-deps:

@@ -1,16 +1,17 @@
 # Handles all user-related endpoints
 from datetime import datetime, timedelta, timezone
-from typing import Annotated
+from typing import Annotated, List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from CoffeeShopApp.database import SessionLocal
 from CoffeeShopApp.models import Users
-from CoffeeShopApp.schemas import CreateUserRequest, Token
+from CoffeeShopApp.schemas import CreateUserRequest, Token, UserResponse
 
 
 def get_db():
@@ -23,10 +24,7 @@ def get_db():
 
 db_dependency = Annotated[Session, Depends(get_db)]
 
-router = APIRouter(
-    prefix="/auth",
-    # tags=['users']
-)
+router = APIRouter()
 
 # from terminal to get ranodm: openssl ran -hex 32
 SECRET_KEY = "c50f442d8c21674efe3301ed5c15c46e6a844c5faab48ee1f448b814bc3d2299"
@@ -103,10 +101,32 @@ def create_user(db: db_dependency, user: CreateUserRequest):
         hashed_password=bcrypt_context.hash(user.password),
         date_created=datetime.now().isoformat(),
     )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    return new_user
+    try:
+        with db.begin():
+            db.add(new_user)
+            db.flush()
+            db.refresh(new_user)
+
+        return {
+            "id": new_user.id,
+            "username": new_user.username,
+            "email": new_user.email,
+            "first_name": new_user.first_name,
+            "last_name": new_user.last_name
+        }   
+
+    except IntegrityError as e:
+    # Handle specific database errors (like unique constraint violation)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Failed to create user. Database integrity error: {str(e)}"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create user. Unexpected error: {str(e)}"
+        )
+    
 
 
 # allow user to authenticate themself and login into saved user
@@ -128,26 +148,24 @@ def login_for_access_token(
         }  # successfully return token
 
 
+# return users info
+@router.get("/", response_model = List[UserResponse])
+def get_users(db: db_dependency):
+    # SELECT * FROM Users
+    users = db.query(Users).all()
+    if users is None:
+        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT)
+    return users
+
+
 # return user info (path parameter)
-@router.get("/{username}")
+@router.get("/{username}", response_model = UserResponse)
 def get_user(db: db_dependency, username: str):
     # SELECT * FROM Users WHERE user_id = user_id
     user = db.query(Users).filter(Users.username == username).first()
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT)   
     return user
 
 
-# OOP
-# class Users():
-#     def __init__(self, username: str, email: str, first_name: str, last_name: str, hashed_password:str, db: Session):
-#         self.username = username
-#         self.email = email
-#         self.first_name = first_name
-#         self.last_name = last_name
-#         self.hashed_password = hashed_password
-#         self.db = db
 
-# def create_access_token(username:str, user_id:int, expires_delta:timedelta):
-#     encode= {'sub': username, 'id': user_id}
-#     expires= datetime.now(timezone.utc)+expires_delta
-#     encode.update({'exp':expires})
-#     return jwt.encode(encode, SECRET_KEY, algorithm=ALGORITHM)

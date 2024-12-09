@@ -1,7 +1,8 @@
-name,address,wifi_quality,has_ac,laptop_friendly_seats,dog_friendly,noise_level,outlet_availability,user_id
-Federal Cafe,"Pl. de las Comendadoras, 9, Centro, 28015 Madrid, Spain",high,TRUE,medium,TRUE,medium,medium,1
-Hanso Cafe,"C. del Pez, 20, Centro, 28004 Madrid, Spain",high,TRUE,high,TRUE,medium,low,1
-Toma Cafe,"C. de la Palma, 49, Centro, 28004 Madrid, Spain",high,FALSE,low,TRUE,low,medium,1
-La Bicicleta,"Pl. de San Ildefonso, 9, Centro, 28004 Madrid, Spain",medium,TRUE,high,TRUE,medium,high,1
-Cafe Belen,"C. de Belén, 5, Centro, 28004 Madrid, Spain",high,FALSE,low,TRUE,low,low,1
-Lola Vintage,"C. del Espíritu Santo, 9, Centro, 28004 Madrid, Spain",low,FALSE,medium,FALSE,medium,medium,1
+name,normalized_name,address,wifi_quality,has_ac,laptop_friendly_seats,dog_friendly,noise_level,outlet_availability,user_id
+Federal,federal,"Pl. de las Comendadoras, 9, Centro, 28015 Madrid, Spain",3,TRUE,2,TRUE,2,2,1
+HanSo,hanso,"C. del Pez, 20, Centro, 28004 Madrid, Spain",3,TRUE,3,TRUE,2,1,1
+Toma,toma,"C. de la Palma, 49, Centro, 28004 Madrid, Spain",3,FALSE,1,TRUE,1,3,1
+La Bicicleta,labicicleta,"Pl. de San Ildefonso, 9, Centro, 28004 Madrid, Spain",2,TRUE,3,TRUE,2,3,1
+Cafe Belen,cafebelen,"C. de Belén, 5, Centro, 28004 Madrid, Spain",3,FALSE,1,TRUE,1,1,1
+Lola Vintage,lolavintage,"C. del Espíritu Santo, 9, Centro, 28004 Madrid, Spain",1,FALSE,2,FALSE,2,2,1
+El Perro de Pavlov,elperrodepavlov,"Costanilla de San Pedro, 5, Centro, 28005 Madrid, Spain",2,TRUE,2,TRUE,2,1,1

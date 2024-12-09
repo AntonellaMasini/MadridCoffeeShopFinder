@@ -38,34 +38,39 @@ def populate_coffee_shops(db: db_dependency):
     existing_records = db.query(CoffeeShops).count()
 
     if existing_records == 0:
-        # Create a default user
-        hashed_password = bcrypt_context.hash("default_password")
-        user = Users(
-            username="creator",
-            email="creator",
-            first_name="creator",
-            last_name="creator",
-            hashed_password=hashed_password,
-            date_created=datetime.now().isoformat(),
-        )
-        db.add(user)
-        db.commit()
-        db.refresh(user)
+        try:
+            # Create a default user
+            hashed_password = bcrypt_context.hash("12345")
+            user = Users(
+                username="amasini",
+                email="antomasini98@gmail.com",
+                first_name="Antonella",
+                last_name="Masini",
+                hashed_password=hashed_password,
+                date_created=datetime.now().isoformat(),
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
 
-        with open(csv_path, "r") as file:
-            reader = csv.DictReader(file)
-            for row in reader:  # row is a dict
-                for (
-                    key,
-                    value,
-                ) in (
-                    row.items()
-                ):  # Convert 'TRUE'/'FALSE' to Python booleans (True/False)
-                    if value == "TRUE":
-                        row[key] = True
-                    elif value == "FALSE":
-                        row[key] = False
+            with open(csv_path, "r") as file:
+                reader = csv.DictReader(file)
+                for row in reader:  # row is a dict
+                    for (
+                        key,
+                        value,
+                    ) in (
+                        row.items()
+                    ):  # Convert 'TRUE'/'FALSE' to Python booleans (True/False)
+                        if value == "TRUE":
+                            row[key] = True
+                        elif value == "FALSE":
+                            row[key] = False
 
-                row["user_id"] = user.id
-                db.add(CoffeeShops(**row))
-        db.commit()
+                    row["user_id"] = user.id
+                    db.add(CoffeeShops(**row))
+            db.commit()
+            
+        except Exception as e:
+            db.rollback()
+            raise Exception(f"An error occurred while populating coffee shops: {str(e)}")

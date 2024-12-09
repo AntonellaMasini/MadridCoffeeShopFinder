@@ -26,6 +26,6 @@ def startup_event():
 
 # imports all operations of router files into main
 app.include_router(coffee_shops.router, prefix="/coffees-madrid", tags=["CoffeeShops"])
-app.include_router(users.router, prefix="/coffees-madrid", tags=["Users"])
+app.include_router(users.router, prefix="/coffees-madrid/auth", tags=["Users"])
 app.include_router(reviews.router, prefix="/coffees-madrid/reviews", tags=["Reviews"])
 # app.include_router(geospatial.router, prefix="/coffees-madrid", tags=["Geospatial"])
