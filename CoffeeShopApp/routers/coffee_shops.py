@@ -5,8 +5,6 @@ from fastapi.param_functions import Depends
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from sqlalchemy import inspect
-
 from CoffeeShopApp.database import SessionLocal
 from CoffeeShopApp.models import AggregatedRatings, CoffeeShops
 from CoffeeShopApp.schemas import CoffeeShopFilterRequest, CoffeeShopRequest
@@ -28,7 +26,6 @@ def get_db():
         db.close()
 
 
-
 db_dependency = Annotated[
     Session, Depends(get_db)
 ]  # dependancy injection to grab and run first db using FastApi, inside FastApi's framework. Avoids repeating  "db: Session = Depends(get_db)" in every fastapi endpoint func parameter
@@ -36,8 +33,8 @@ db_dependency = Annotated[
 router = APIRouter()
 
 
-
 # API ENDPOINTS -----------------------------------------------------------------------------------------------------------------------
+
 
 # #filter by parameter, injecting dependency gets rid of post body, since default is = Body()
 @router.get("/coffee-shops/")
@@ -109,6 +106,12 @@ def get_coffee_shops_filter(
         query.all()
     )  # list of tuples, each tuple corresponds to the selected columns [(col1,col2,col3...), (col1,col2,col3...), ...]
 
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_204_NO_CONTENT,
+            detail="No coffeeshops match filter",
+        )
+
     # Format the result to return a list of dictionaries
     coffee_shops = []
     for shop in result:
@@ -132,7 +135,6 @@ def get_coffee_shops_filter(
             ),
         }
         coffee_shops.append(coffee_shop)
-
     return {"coffee_shops": coffee_shops}
 
 
@@ -145,41 +147,47 @@ def get_all_coffee_shops(db: db_dependency):
 # Parameter1: starts database session, passed into function as db variable
 # Parameter2: coffee_shop_request represents the JSON input data sent by the client.
 # FastAPI ensures this data matches the Pydantic schema `CoffeeShopRequest`. If validation fails, FastAPI returns an error BEFORE calling the function.
-@router.post("/coffee-shops/")
+@router.post("/coffee-shops/", status_code=status.HTTP_201_CREATED)
 def create_coffee_shop(
     user: user_dependency, db: db_dependency, coffee_shop_request: CoffeeShopRequest
 ):
     # create instance of class CoffeeShops
     # user_dependency returns a dict: {"username": username, "id": user_id} . We can access this with normal dict call but it is always better to use get method
-    shop = CoffeeShops(**coffee_shop_request.dict(), normalized_name = coffee_shop_request.name.replace(" ", "").lower(), user_id=user.get("id"))
+
+    shop = CoffeeShops(
+        **coffee_shop_request.dict(),
+        normalized_name=coffee_shop_request.name.replace(" ", "").lower(),
+        user_id=user.get("id"),
+    )
     # coffee_shop_request.dict()   --> converts coffee_shop_request pydantic object (JSON format) into python dictionary
     # **coffee_shop_request.dict() --> unpacks dictionary into keyword arguments for the CoffeShops model, mapping fields (title) to corresponding columns in the CoffeShops SQLAlchemy model (table).
     # adds coffee_shop_model object (instance of CoffeeShops class), to table (still not commited tho, local)
     # add changes to database
-    
     try:
-        #print(f"Session active: {db.is_active}, bound: {db.bind is not None}")
         with db.begin():
             db.add(shop)
-            print(f"Shop ID before refresh: {shop.id}")
-            
         db.refresh(shop)
         return shop
 
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create coffee shop: {str(e)}"
+            detail=f"Failed to create coffee shop: {str(e)}",
         )
 
 
 # delete coffee shop entry only if client added it, but whenever coffee shop is deleted, all of its things are also deleted (like raitng)
 @router.delete("/coffee-shops/{coffeeshop}")
-def delete_coffee_shop(user: user_dependency, db: db_dependency, coffeeshop:str):
+def delete_coffee_shop(user: user_dependency, db: db_dependency, coffeeshop: str):
+    """User can only delete their own coffeeshop entries"""
     user_id = user.get("id")
     # Get the coffee shop
-    normalized_name= coffeeshop.replace(" ", "").lower()
-    coffee_shop = db.query(CoffeeShops).filter(CoffeeShops.normalized_name == normalized_name).first()
+    normalized_name = coffeeshop.replace(" ", "").lower()
+    coffee_shop = (
+        db.query(CoffeeShops)
+        .filter(CoffeeShops.normalized_name == normalized_name)
+        .first()
+    )
     # Check if coffee shop exists
     if not coffee_shop:
         raise HTTPException(
@@ -196,23 +204,18 @@ def delete_coffee_shop(user: user_dependency, db: db_dependency, coffeeshop:str)
     try:
         db.commit()  # Ensure any pending transactions are committed
         db.delete(coffee_shop)  # Delete the coffee shop
-        db.commit()  # Commit the deletion       
-        
+        db.commit()  # Commit the deletion
+
         return {"detail": "Coffee shop and its related data deleted successfully"}
-     
-    # try:
-    #     with db.begin(): #start transaction
-    #         db.delete(coffee_shop)  
-    #     return {"detail": "Coffee shop and its related data deleted successfully"}
-     
+
     except SQLAlchemyError as e:
         # Catch other SQLAlchemy-specific errors
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to delete coffee shop and related data. Database error: {str(e)}"
-        )   
+            detail=f"Failed to delete coffee shop and related data. Database error: {str(e)}",
+        )
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to delete coffee shop and related data. An unexpected error occurred: {str(e)}"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to delete coffee shop and related data. An unexpected error occurred: {str(e)}",
         )
-   

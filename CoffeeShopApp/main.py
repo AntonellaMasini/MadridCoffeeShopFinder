@@ -9,9 +9,9 @@ from .routers import coffee_shops, reviews, users
 from .seed_data import populate_coffee_shops
 
 app = FastAPI()  # create an instance of our application
-models.Base.metadata.create_all(
-    bind=engine
-)
+
+# create all tables in defined place on database.py
+models.Base.metadata.create_all(bind=engine)
 
 
 # Populate tables if empty
@@ -28,4 +28,3 @@ def startup_event():
 app.include_router(coffee_shops.router, prefix="/coffees-madrid", tags=["CoffeeShops"])
 app.include_router(users.router, prefix="/coffees-madrid/auth", tags=["Users"])
 app.include_router(reviews.router, prefix="/coffees-madrid/reviews", tags=["Reviews"])
-# app.include_router(geospatial.router, prefix="/coffees-madrid", tags=["Geospatial"])

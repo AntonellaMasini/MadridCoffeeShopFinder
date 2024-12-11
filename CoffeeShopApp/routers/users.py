@@ -91,7 +91,7 @@ def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
 
 # API ENDPOINTS -----------------------------------------------------------------------------------------------------------------------
 # create user object and add it as a row to user table
-@router.post("/")
+@router.post("/", status_code=status.HTTP_201_CREATED)
 def create_user(db: db_dependency, user: CreateUserRequest):
     new_user = Users(
         username=user.username,
@@ -112,21 +112,20 @@ def create_user(db: db_dependency, user: CreateUserRequest):
             "username": new_user.username,
             "email": new_user.email,
             "first_name": new_user.first_name,
-            "last_name": new_user.last_name
-        }   
+            "last_name": new_user.last_name,
+        }
 
     except IntegrityError as e:
-    # Handle specific database errors (like unique constraint violation)
+        # Handle specific database errors (like unique constraint violation)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to create user. Database integrity error: {str(e)}"
+            detail=f"Failed to create user. Database integrity error: {str(e)}",
         )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create user. Unexpected error: {str(e)}"
+            detail=f"Failed to create user. Unexpected error: {str(e)}",
         )
-    
 
 
 # allow user to authenticate themself and login into saved user
@@ -149,7 +148,7 @@ def login_for_access_token(
 
 
 # return users info
-@router.get("/", response_model = List[UserResponse])
+@router.get("/", response_model=List[UserResponse])
 def get_users(db: db_dependency):
     # SELECT * FROM Users
     users = db.query(Users).all()
@@ -159,13 +158,10 @@ def get_users(db: db_dependency):
 
 
 # return user info (path parameter)
-@router.get("/{username}", response_model = UserResponse)
+@router.get("/{username}", response_model=UserResponse)
 def get_user(db: db_dependency, username: str):
     # SELECT * FROM Users WHERE user_id = user_id
     user = db.query(Users).filter(Users.username == username).first()
     if user is None:
-        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT)   
+        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT)
     return user
-
-
-

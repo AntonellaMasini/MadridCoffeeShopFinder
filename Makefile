@@ -18,7 +18,7 @@ install-deps:
 
 # Run tests
 test:
-	pytest
+	pytest --verbose --disable-warnings -vv
 
 # Format the code with isort and black
 # isort: orders imports

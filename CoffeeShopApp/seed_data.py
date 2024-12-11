@@ -18,10 +18,10 @@ if not csv_path.is_file():
 
 bcrypt_context = CryptContext(
     schemes=["bcrypt"], deprecated="auto"
-)  # CryptContext is a class passed by passlib library. Handles hashing and verifying passwords
+)  
 
 
-# bcrypt is the algorythm (scheme) chosen for password hashing
+
 def get_db():
     db = SessionLocal()
     try:
@@ -39,6 +39,7 @@ def populate_coffee_shops(db: db_dependency):
 
     if existing_records == 0:
         try:
+            
             # Create a default user
             hashed_password = bcrypt_context.hash("12345")
             user = Users(
@@ -50,8 +51,7 @@ def populate_coffee_shops(db: db_dependency):
                 date_created=datetime.now().isoformat(),
             )
             db.add(user)
-            db.commit()
-            db.refresh(user)
+            db.flush()  # to get user.id
 
             with open(csv_path, "r") as file:
                 reader = csv.DictReader(file)
@@ -69,8 +69,9 @@ def populate_coffee_shops(db: db_dependency):
 
                     row["user_id"] = user.id
                     db.add(CoffeeShops(**row))
-            db.commit()
-            
+            db.commit()  # Commit the transaction
         except Exception as e:
             db.rollback()
-            raise Exception(f"An error occurred while populating coffee shops: {str(e)}")
+            raise Exception(
+                f"An error occurred while populating coffee shops: {str(e)}"
+            )

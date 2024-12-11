@@ -1,5 +1,5 @@
 # ORM models (my Python classes that map to database tables)
-from sqlalchemy import Boolean, Column, Enum, Float, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.schema import CheckConstraint
 
@@ -7,17 +7,6 @@ from CoffeeShopApp.database import Base
 
 # Base is a class created by the declarative_base() function in database.py
 # each class/model inherits Base class, allowing SQLAlchemy to understand that the class represents a db table.
-
-
-# class LevelsEnum(IntEnum):
-#     low = 1
-#     medium = 2
-#     high = 3
-
-# class QuantsEnum(IntEnum):
-#     limited = 1
-#     moderate = 2
-#     plenty = 3
 
 
 class CoffeeShops(Base):
@@ -30,16 +19,20 @@ class CoffeeShops(Base):
     has_ac = Column(Boolean, nullable=False)
     laptop_friendly_seats = Column(Integer, nullable=False)
     dog_friendly = Column(Boolean, nullable=False)
-    noise_level = Column(String, nullable=False)
+    noise_level = Column(Integer, nullable=False)
     outlet_availability = Column(Integer, nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"))
 
     # Add a Check Constraint to ensure values are 1, 2, or 3
     __table_args__ = (
         CheckConstraint("wifi_quality IN (1, 2, 3)", name="wifi_quality_check"),
-        CheckConstraint("laptop_friendly_seats IN (1, 2, 3)", name="laptop_seats_check"),
+        CheckConstraint(
+            "laptop_friendly_seats IN (1, 2, 3)", name="laptop_seats_check"
+        ),
         CheckConstraint("noise_level IN (1, 2, 3)", name="noise_level_check"),
-        CheckConstraint("outlet_availability IN (1, 2, 3)", name="outlet_availability_check"),
+        CheckConstraint(
+            "outlet_availability IN (1, 2, 3)", name="outlet_availability_check"
+        ),
     )
 
     # Define the relationships with cascade delete:
