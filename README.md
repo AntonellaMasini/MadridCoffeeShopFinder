@@ -66,7 +66,7 @@ Follow the steps below to set up the project environment and get everything runn
 1. Clone the Repository  
 Clone this repository to your local machine:
 ```bash
-git clone https://github.com/AntonellaMasini/CoffeeShopsApp.git
+git clone https://github.com/AntonellaMasini/MadridCoffeeShopFinder.git
 cd coffeeshopapp
 ```
 
