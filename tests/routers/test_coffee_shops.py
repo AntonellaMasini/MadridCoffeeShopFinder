@@ -246,5 +246,4 @@ def test_get_coffeeshop_filter_parametrized(test_coffeeshop, filter_params, expe
         actual_names = [shop["name"] for shop in coffee_shops]
         assert set(actual_names) == set(expected_names)
     else:
-        print('AAAAAA,=')
         assert response.text == ""
