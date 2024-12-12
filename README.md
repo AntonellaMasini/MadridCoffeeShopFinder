@@ -14,6 +14,7 @@ Tech Stack:
 - FastAPI: A framework for building APIs.
 - SQLAlchemy: An ORM for database interactions
 - SQLite (default): Lightweight database for storing data.
+- PostreSQL: More robust database if needed. You can uncomment it in database.py to use it instead
 - Passlib: Password hashing for security (bcrypt).
 - Uvicorn: ASGI server to run the FastAPI app.
 - CSV: Used to populate the database with coffee shop data.
