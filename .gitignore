@@ -35,7 +35,6 @@ coverage.xml
 docker-compose.override.yml
 
 # OS-specific files
-.DS_Store          # macOS
 Thumbs.db          # Windows
 *.swp              # Vim
 
@@ -49,3 +48,4 @@ dist/
 
 # File system metadata
 ehthumbs.db
+.DS_Store

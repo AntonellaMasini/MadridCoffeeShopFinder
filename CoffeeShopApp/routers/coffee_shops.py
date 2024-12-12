@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException, status
 from fastapi.param_functions import Depends
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
+from starlette.responses import JSONResponse, Response
 
 from CoffeeShopApp.database import SessionLocal
 from CoffeeShopApp.models import AggregatedRatings, CoffeeShops
@@ -107,10 +108,11 @@ def get_coffee_shops_filter(
     )  # list of tuples, each tuple corresponds to the selected columns [(col1,col2,col3...), (col1,col2,col3...), ...]
 
     if not result:
-        raise HTTPException(
-            status_code=status.HTTP_204_NO_CONTENT,
-            detail="No coffeeshops match filter",
-        )
+        # raise HTTPException(
+        #     status_code=status.HTTP_204_NO_CONTENT,
+        #     detail="No coffeeshops match filter",
+        # )
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
 
     # Format the result to return a list of dictionaries
     coffee_shops = []
